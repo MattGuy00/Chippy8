@@ -7,5 +7,7 @@ find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
 
 add_executable(Chippy8
-        main.c)
+        main.c
+        Chip8VM.h
+        Chip8VM.c)
 target_link_libraries(Chippy8 ${SDL2_LIBRARIES})
