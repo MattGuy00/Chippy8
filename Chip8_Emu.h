@@ -2,10 +2,17 @@
 
 #include <array>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
+#include <ios>
+#include <string>
+#include <iostream>
 #include <vector>
 
 class Chip8_Emu {
 public:
+	void play(const std::string& rom);
+
 	std::array<std::uint8_t, 4096> m_memory {
 		// Font
 		0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
@@ -27,8 +34,17 @@ public:
 
 	int m_delay_timer {};
 	int m_sound_timer {};
-	int m_PC {};
+	int m_PC { 511 };
 	int m_I {};
 
 	std::array<uint16_t, 16> m_registers {};
+private:
+	void read_rom_into_memory(const std::string& rom) {
+		std::ifstream rom_file { rom, std::ios::binary };	
+		int rom_memory_start_pos { 511 };
+		// TODO: Add error checking
+		auto size { std::filesystem::file_size(rom) };
+		rom_file.read(reinterpret_cast<char*>(m_memory.data()) + 511, size);
+
+	}
 };
