@@ -12,3 +12,5 @@ _deps
 cmake-build-debug
 .idea/
 rom/
+.cache/
+Chippy8
