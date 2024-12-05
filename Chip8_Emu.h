@@ -27,7 +27,6 @@ public:
 
 	int m_delay_timer {};
 	int m_sound_timer {};
-
 	int m_PC {};
 	int m_I {};
 
