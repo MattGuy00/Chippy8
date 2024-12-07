@@ -13,6 +13,12 @@ public:
 		ADD_TO_REG = 0x7,
 		SET_I = 0xa,
 		DRAW = 0xd,
+		SKIP_X_EQ_NN,
+		SKIP_X_NE_NN,
+		SKIP_X_Y_EQ,
+		SKIP_X_Y_NE,
+		CALL,
+		RETURN,
 		EMPTY,
 	};
 
@@ -26,13 +32,31 @@ public:
 		m_NNN = (m_X << 8) | m_NN;
 		switch (m_type_nibble) {
 			case 0x0: {
-				if (m_Y == 0xe && m_N == 0x0) {
+				if (m_NNN == 0x0e0) {
 					m_type = TYPE::CLEAR_SCREEN;
+				} else if (m_NNN == 0x0ee) {
+					m_type = TYPE::RETURN;
 				}
 				break;
 			}
 			case 0x1: {
 				m_type = TYPE::JUMP;
+				break;
+			}
+			case 0x2: {
+				m_type = TYPE::CALL;
+				break;
+			}
+			case 0x3: {
+				m_type = TYPE::SKIP_X_EQ_NN;
+				break;
+			}
+			case 0x4: {
+				m_type = TYPE::SKIP_X_NE_NN;
+				break;
+			}
+			case 0x5: {
+				m_type = TYPE::SKIP_X_Y_EQ;
 				break;
 			}
 			case 0x6: {
@@ -41,6 +65,10 @@ public:
 			}
 			case 0x7: {
 				m_type = TYPE::ADD_TO_REG;
+				break;
+			}
+			case 0x9: {
+				m_type = TYPE::SKIP_X_Y_NE;
 				break;
 			}
 			case 0xa: {
@@ -78,6 +106,12 @@ static constexpr std::string_view getInstructionName(Instruction::TYPE type) {
 		case JUMP: return "JUMP";
 		case DRAW: return "DRAW";
 		case ADD_TO_REG: return "ADD_TO_REG";
+		case SKIP_X_EQ_NN: return "SKIP_X_EQ_NN";
+		case SKIP_X_NE_NN: return "SKIP_X_NE_NN";
+		case SKIP_X_Y_EQ: return "SKIP_X_Y_EQ";
+		case SKIP_X_Y_NE: return "SKIP_X_Y_NE";
+		case CALL: return "CALL";
+		case RETURN: return "RETURN";
 		case EMPTY: return "UNKNOWN";
 	}
 }
@@ -98,18 +132,28 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instruction) {
 			out << '\n';
 			break;
 		case JUMP:
-			out << instruction.m_NNN << '\n';
+			out << instruction.m_NNN;
 			break;
 		case SET_REG:
 		case ADD_TO_REG:
-			out << instruction.m_NN << ", V" << instruction.m_X << '\n';
+			out << instruction.m_NN << ", V" << instruction.m_X;
 			break;
 		case SET_I:
-			out << instruction.m_NNN << '\n';
+			out << instruction.m_NNN;
 			break;
 		case DRAW:
-			out << instruction.m_X << ' ' << instruction.m_Y << ' ' << instruction.m_N << '\n';
+			out << instruction.m_X << ' ' << instruction.m_Y << ' ' << instruction.m_N;
 			break;
+		case SKIP_X_EQ_NN:
+		case SKIP_X_NE_NN:
+		case SKIP_X_Y_EQ:
+		case SKIP_X_Y_NE:
+			out << instruction.m_X << ", " << instruction.m_Y;
+			break;
+		case CALL:
+			out << instruction.m_NNN;
+			break;
+		case RETURN:
 		default:
 			out << '\n';
 			break;

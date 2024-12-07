@@ -28,7 +28,7 @@ void Chip8_Emu::play(const std::string& rom) {
 
 		Instruction instr = Instruction(instruction_bytes);
 		std::cout << "loc:" << m_PC << ':';
-		std::cout << std::hex << instr;
+		std::cout << std::hex << instr << '\n';
 		switch (instr.m_type) {
 			case Instruction::TYPE::CLEAR_SCREEN: {
 				// TODO: clear bitmap 
@@ -81,8 +81,44 @@ void Chip8_Emu::play(const std::string& rom) {
 				window.draw_bitmap(bitmap);
 				break;
 			}
-			default: {
+			case Instruction::TYPE::SKIP_X_EQ_NN: {
+				if (instr.m_X == instr.m_NN) {
+					m_PC += 2;
+				}
 				break;
+			}
+			case Instruction::TYPE::SKIP_X_NE_NN: {
+				if (instr.m_X != instr.m_NN) {
+					m_PC += 2;
+				}
+				break;
+			}
+			case Instruction::TYPE::SKIP_X_Y_EQ: {
+				if (instr.m_X == instr.m_Y) {
+					m_PC += 2;
+				}
+				break;
+			}
+			case Instruction::TYPE::SKIP_X_Y_NE: {
+				if (instr.m_X != instr.m_Y) {
+					m_PC += 2;
+				}
+				break;
+			}
+			case Instruction::TYPE::CALL: {
+				m_stack.push_back(m_PC);
+				m_PC = instr.m_NNN;
+				break;
+			}
+			case Instruction::TYPE::RETURN: {
+				m_PC = m_stack.back();
+				m_stack.pop_back();
+				break;
+			}
+			default: {
+				// Exit when we encounter unknown instruction
+				std::cout << "Missing implementation: " << instr << '\n';
+				return;
 			}
 		}
 	}
