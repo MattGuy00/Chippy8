@@ -9,7 +9,7 @@ class Window {
 public:
 	Window(std::string_view name, int width, int height) {
 		SDL_Init(SDL_INIT_VIDEO);
-		SDL_CreateWindowAndRenderer("Chip8", 64, 32, SDL_WINDOW_RESIZABLE, &window, &m_renderer);
+		SDL_CreateWindowAndRenderer(name.data(), width, height, SDL_WINDOW_RESIZABLE, &window, &m_renderer);
 		SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 		SDL_RenderClear(m_renderer);
 		SDL_RenderPresent(m_renderer);

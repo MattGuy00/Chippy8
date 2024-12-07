@@ -61,4 +61,5 @@ private:
 		rom_file.read(reinterpret_cast<char*>(m_memory.data()) + 512, size);
 
 	}
+
 };
