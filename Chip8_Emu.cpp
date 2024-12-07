@@ -82,25 +82,25 @@ void Chip8_Emu::play(const std::string& rom) {
 				break;
 			}
 			case Instruction::TYPE::SKIP_X_EQ_NN: {
-				if (instr.m_X == instr.m_NN) {
+				if (m_registers[instr.m_X] == instr.m_NN) {
 					m_PC += 2;
 				}
 				break;
 			}
 			case Instruction::TYPE::SKIP_X_NE_NN: {
-				if (instr.m_X != instr.m_NN) {
+				if (m_registers[instr.m_X] != instr.m_NN) {
 					m_PC += 2;
 				}
 				break;
 			}
 			case Instruction::TYPE::SKIP_X_Y_EQ: {
-				if (instr.m_X == instr.m_Y) {
+				if (m_registers[instr.m_X] == m_registers[instr.m_Y]) {
 					m_PC += 2;
 				}
 				break;
 			}
 			case Instruction::TYPE::SKIP_X_Y_NE: {
-				if (instr.m_X != instr.m_Y) {
+				if (m_registers[instr.m_X] != m_registers[instr.m_Y]) {
 					m_PC += 2;
 				}
 				break;
@@ -146,7 +146,7 @@ void Chip8_Emu::play(const std::string& rom) {
 			case Instruction::TYPE::SUBTRACT_X_Y: {
 				if (m_registers[instr.m_X] > m_registers[instr.m_Y]) {
 					m_registers[0xf] = 1;
-				} else {
+				} else if (m_registers[instr.m_X] < m_registers[instr.m_Y]) {
 					m_registers[0xf] = 0;
 				}
 
@@ -156,7 +156,7 @@ void Chip8_Emu::play(const std::string& rom) {
 			case Instruction::TYPE::SUBTRACT_Y_X: {
 				if (m_registers[instr.m_Y] > m_registers[instr.m_X]) {
 					m_registers[0xf] = 1;
-				} else {
+				} else if (m_registers[instr.m_Y] < m_registers[instr.m_X]){
 					m_registers[0xf] = 0;
 				}
 
@@ -170,7 +170,7 @@ void Chip8_Emu::play(const std::string& rom) {
 				} else if (shifted_bit == 0x0) {
 					m_registers[0xf] = 0;
 				}
-				m_registers[instr.m_X] >>= 1;
+				m_registers[instr.m_X] <<= 1;
 				break;
 			}
 			case Instruction::TYPE::SHIFT_RIGHT: {
@@ -180,7 +180,30 @@ void Chip8_Emu::play(const std::string& rom) {
 				} else if (shifted_bit == 0x0) {
 					m_registers[0xf] = 0;
 				}
-				m_registers[instr.m_X] <<= 1;
+				m_registers[instr.m_X] >>= 1;
+				break;
+			}
+			case Instruction::TYPE::BCD_CONVERSION: {
+				// Too lazy to put in loop
+				uint8_t value { m_registers[instr.m_X] };
+				uint8_t hundreds { static_cast<uint8_t>((value / 100) % 10) };
+				uint8_t tens { static_cast<uint8_t>((value / 10) % 10) };
+				uint8_t ones { static_cast<uint8_t>(value % 10) };
+				m_memory[m_I] = hundreds;
+				m_memory[m_I + 1] = tens;
+				m_memory[m_I + 2] = ones;
+				break;
+			}
+			case Instruction::TYPE::STORE: {
+				for (int i = 0; i <= instr.m_X; ++i) {
+					m_memory[m_I + i] = m_registers[i];
+				}
+				break;
+			}
+			case Instruction::TYPE::LOAD: {
+				for (int i = 0; i <= instr.m_X; ++i) {
+					m_registers[i] = m_memory[m_I + i];
+				}
 				break;
 			}
 			default: {

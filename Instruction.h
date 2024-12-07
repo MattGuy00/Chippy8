@@ -28,6 +28,9 @@ public:
 		SUBTRACT_Y_X,
 		SHIFT_LEFT,
 		SHIFT_RIGHT,
+		BCD_CONVERSION,
+		STORE,
+		LOAD,
 		EMPTY,
 	};
 
@@ -103,6 +106,16 @@ public:
 				m_type = TYPE::DRAW;
 				break;
 			}
+			case 0xf: {
+				if (m_NN == 0x33) {
+					m_type = TYPE::BCD_CONVERSION;
+				} else if (m_NN == 0x55) {
+					m_type = TYPE::STORE;
+				} else if (m_NN == 0x65) {
+					m_type = TYPE::LOAD;
+				}
+				break;
+			}
 			default: {
 				m_type = TYPE::EMPTY;
 				break;
@@ -145,6 +158,9 @@ static constexpr std::string_view getInstructionName(Instruction::TYPE type) {
 		case SUBTRACT_Y_X: return "SUBTRACT_Y_X";
 		case SHIFT_LEFT: return "SHIFT_LEFT";
 		case SHIFT_RIGHT: return "SHIFT_RIGHT";
+		case BCD_CONVERSION: return "BCD_CONVERSION";
+		case STORE: return "STORE";
+		case LOAD: return "LOAD";
 		case EMPTY: return "UNKNOWN";
 	}
 }
@@ -199,6 +215,12 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instruction) {
 		case XOR:
 			out << 'V' << instruction.m_X << " V" << instruction.m_Y;
 			break;
+		case BCD_CONVERSION:
+			out << 'V' << instruction.m_X; 
+			break;
+		case STORE:
+		case LOAD:
+			out << "V0..V" << instruction.m_X;
 		case RETURN:
 		default:
 			out << '\n';
