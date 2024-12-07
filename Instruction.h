@@ -19,6 +19,15 @@ public:
 		SKIP_X_Y_NE,
 		CALL,
 		RETURN,
+		SET,
+		OR,
+		AND,
+		XOR,
+		ADD,
+		SUBTRACT_X_Y,
+		SUBTRACT_Y_X,
+		SHIFT_LEFT,
+		SHIFT_RIGHT,
 		EMPTY,
 	};
 
@@ -67,6 +76,21 @@ public:
 				m_type = TYPE::ADD_TO_REG;
 				break;
 			}
+			case 0x8: {
+				switch (m_N) {
+					case 0x0: m_type = TYPE::SET; break;
+					case 0x1: m_type = TYPE::OR; break;
+					case 0x2: m_type = TYPE::AND; break;
+					case 0x3: m_type = TYPE::XOR; break;
+					case 0x4: m_type = TYPE::ADD; break;
+					case 0x5: m_type = TYPE::SUBTRACT_X_Y; break;
+					case 0x6: m_type = TYPE::SHIFT_RIGHT; break;
+					case 0x7: m_type = TYPE::SUBTRACT_Y_X; break;
+					case 0xe: m_type = TYPE::SHIFT_LEFT; break;
+				}
+
+				break;
+			}
 			case 0x9: {
 				m_type = TYPE::SKIP_X_Y_NE;
 				break;
@@ -112,6 +136,15 @@ static constexpr std::string_view getInstructionName(Instruction::TYPE type) {
 		case SKIP_X_Y_NE: return "SKIP_X_Y_NE";
 		case CALL: return "CALL";
 		case RETURN: return "RETURN";
+		case SET: return "SET";
+		case OR: return "OR";
+		case AND: return "AND";
+		case XOR: return "XOR";
+		case ADD: return "ADD";
+		case SUBTRACT_X_Y: return "SUBTRACT_X_Y";
+		case SUBTRACT_Y_X: return "SUBTRACT_Y_X";
+		case SHIFT_LEFT: return "SHIFT_LEFT";
+		case SHIFT_RIGHT: return "SHIFT_RIGHT";
 		case EMPTY: return "UNKNOWN";
 	}
 }
@@ -152,6 +185,19 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instruction) {
 			break;
 		case CALL:
 			out << instruction.m_NNN;
+			break;
+		case SET:
+		case ADD:
+		case SUBTRACT_Y_X:
+		case SUBTRACT_X_Y:
+		case SHIFT_RIGHT:
+		case SHIFT_LEFT:
+			out << 'V' << instruction.m_Y << ", V" << instruction.m_X;
+			break;
+		case OR:
+		case AND:
+		case XOR:
+			out << 'V' << instruction.m_X << " V" << instruction.m_Y;
 			break;
 		case RETURN:
 		default:

@@ -115,6 +115,74 @@ void Chip8_Emu::play(const std::string& rom) {
 				m_stack.pop_back();
 				break;
 			}
+			case Instruction::TYPE::SET: {
+				m_registers[instr.m_X] = m_registers[instr.m_Y];
+				break;
+			}
+			case Instruction::TYPE::OR: {
+				m_registers[instr.m_X] |= m_registers[instr.m_Y];
+				break;
+			}
+			case Instruction::TYPE::AND: {
+				m_registers[instr.m_X] &= m_registers[instr.m_Y];
+				break;
+			}
+			case Instruction::TYPE::XOR: {
+				m_registers[instr.m_X] ^= m_registers[instr.m_Y];
+				break;
+			}
+			case Instruction::TYPE::ADD: {
+				// Store in an int to check for 8 bit overflow
+				int value { m_registers[instr.m_X] + m_registers[instr.m_Y] };
+				if (value > 255) {
+					m_registers[0xf] = 1;
+				} else {
+					m_registers[0xf] = 0;
+				}
+				// Store the sum and let it overflow 
+				m_registers[instr.m_X] = value;
+				break;
+			}
+			case Instruction::TYPE::SUBTRACT_X_Y: {
+				if (m_registers[instr.m_X] > m_registers[instr.m_Y]) {
+					m_registers[0xf] = 1;
+				} else {
+					m_registers[0xf] = 0;
+				}
+
+				m_registers[instr.m_X] = m_registers[instr.m_X] - m_registers[instr.m_Y];
+				break;
+			}
+			case Instruction::TYPE::SUBTRACT_Y_X: {
+				if (m_registers[instr.m_Y] > m_registers[instr.m_X]) {
+					m_registers[0xf] = 1;
+				} else {
+					m_registers[0xf] = 0;
+				}
+
+				m_registers[instr.m_X] = m_registers[instr.m_Y] - m_registers[instr.m_X];
+				break;
+			}
+			case Instruction::TYPE::SHIFT_LEFT: {
+				int shifted_bit { m_registers[instr.m_X] & 0xf };
+				if (shifted_bit == 0x1) {
+					m_registers[0xf] = 1;
+				} else if (shifted_bit == 0x0) {
+					m_registers[0xf] = 0;
+				}
+				m_registers[instr.m_X] >>= 1;
+				break;
+			}
+			case Instruction::TYPE::SHIFT_RIGHT: {
+				int shifted_bit { m_registers[instr.m_X] & 0xf };
+				if (shifted_bit == 0x1) {
+					m_registers[0xf] = 1;
+				} else if (shifted_bit == 0x0) {
+					m_registers[0xf] = 0;
+				}
+				m_registers[instr.m_X] <<= 1;
+				break;
+			}
 			default: {
 				// Exit when we encounter unknown instruction
 				std::cout << "Missing implementation: " << instr << '\n';

@@ -51,7 +51,7 @@ public:
 
 	Window window { "Chip8", m_window_width, m_window_height };
 
-	std::array<uint16_t, 16> m_registers {};
+	std::array<uint8_t, 16> m_registers {};
 private:
 	void read_rom_into_memory(const std::string& rom) {
 		std::ifstream rom_file { rom, std::ios::binary };	
