@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Bitmap.h"
+#include "Window.h"
 #include <SDL3/SDL_render.h>
 #include <array>
 #include <cstdint>
@@ -12,6 +14,11 @@
 
 class Chip8_Emu {
 public:
+	// Fixed width and height until we add option for user
+	// to change it
+	static constexpr int m_window_width { 64 };
+	static constexpr int m_window_height { 32 };
+
 	void play(const std::string& rom);
 
 	std::array<std::uint8_t, 4096> m_memory {
@@ -33,10 +40,8 @@ public:
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 		0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 	};
-	int m_display_width { 64 };
-	int m_display_height { 32 };
-	std::array<std::array<int, 32>, 64> m_screen_bitmap {};
 
+	Bitmap bitmap { m_window_width, m_window_height };
 	std::vector<uint16_t> m_stack {};
 
 	int m_delay_timer {};
@@ -44,7 +49,8 @@ public:
 	int m_PC { 512 };
 	int m_I {};
 
-	void draw(SDL_Renderer* renderer); 
+	Window window { "Chip8", m_window_width, m_window_height };
+
 	std::array<uint16_t, 16> m_registers {};
 private:
 	void read_rom_into_memory(const std::string& rom) {
