@@ -16,8 +16,8 @@ class Chip8_Emu {
 public:
 	// Fixed width and height until we add option for user
 	// to change it
-	static constexpr int m_window_width { 64 };
-	static constexpr int m_window_height { 32 };
+	static constexpr int m_window_width { 640 };
+	static constexpr int m_window_height { 320 };
 
 	void play(const std::string& rom);
 

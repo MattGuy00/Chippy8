@@ -10,14 +10,18 @@
 
 
 void Chip8_Emu::play(const std::string& rom) {
-	SDL_Event event;
 	bool running { true };
 	read_rom_into_memory(rom);
 
 	while (running) {
-		SDL_PollEvent(&event);
-		if (event.type == SDL_EVENT_QUIT) {
-			break;
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_EVENT_QUIT: {
+					running = false;
+					break;
+				}
+			}
 		}
 
 		uint16_t lower_byte = static_cast<uint16_t>(m_memory[m_PC]) << 8;
@@ -212,5 +216,6 @@ void Chip8_Emu::play(const std::string& rom) {
 				return;
 			}
 		}
+
 	}
 }
