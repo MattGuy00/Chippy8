@@ -3,6 +3,7 @@
 #include "Bitmap.h"
 #include "Window.h"
 #include <SDL3/SDL_render.h>
+#include <SDL3/SDL_scancode.h>
 #include <array>
 #include <cstdint>
 #include <filesystem>
@@ -10,6 +11,7 @@
 #include <ios>
 #include <string>
 #include <iostream>
+#include <unordered_map>
 #include <vector>
 
 class Chip8_Emu {
@@ -44,8 +46,32 @@ public:
 	Bitmap bitmap { m_window_width, m_window_height };
 	std::vector<uint16_t> m_stack {};
 
-	int m_delay_timer {};
-	int m_sound_timer {};
+	//	COMSAC LAYOUT: =>	MODERN LAYOUT:
+	//	1 2 3 C				1 2 3 4
+	//	4 5 6 D				Q W E R
+	//	7 8 9 E				A S D F 
+	//	A 0 B F				Z X C V
+	std::array<bool, SDL_SCANCODE_COUNT> m_keys {};
+	std::unordered_map<uint8_t, uint16_t> m_keymap {
+		{ 0x0, SDL_SCANCODE_X },
+		{ 0x1, SDL_SCANCODE_1 },
+		{ 0x2, SDL_SCANCODE_2 },
+		{ 0x3, SDL_SCANCODE_3 },
+		{ 0x4, SDL_SCANCODE_Q },
+		{ 0x5, SDL_SCANCODE_W },
+		{ 0x6, SDL_SCANCODE_E },
+		{ 0x7, SDL_SCANCODE_A },
+		{ 0x8, SDL_SCANCODE_S },
+		{ 0x9, SDL_SCANCODE_D },
+		{ 0xa, SDL_SCANCODE_Z },
+		{ 0xb, SDL_SCANCODE_C },
+		{ 0xc, SDL_SCANCODE_4 },
+		{ 0xd, SDL_SCANCODE_R },
+		{ 0xe, SDL_SCANCODE_F },
+		{ 0xf, SDL_SCANCODE_V }
+	};
+	uint8_t m_delay_timer {};
+	uint8_t m_sound_timer {};
 	int m_PC { 512 };
 	int m_I {};
 

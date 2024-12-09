@@ -31,6 +31,14 @@ public:
 		BCD_CONVERSION,
 		STORE,
 		LOAD,
+		ADD_TO_INDEX,
+		SET_DELAY_TIMER,
+		SET_SOUND_TIMER,
+		SET_X_DELAY_TIMER,
+		SKIP_KEY_PRESSED,
+		SKIP_KEY_NOT_PRESSED,
+		GET_FONT_CHAR,
+		RANDOM,
 		EMPTY,
 	};
 
@@ -102,17 +110,28 @@ public:
 				m_type = TYPE::SET_I;
 				break;
 			}
+			case 0xc: m_type = TYPE::RANDOM; break;
 			case 0xd: {
 				m_type = TYPE::DRAW;
 				break;
 			}
+			case 0xe: {
+				switch (m_NN) {
+					case 0x9e: m_type = TYPE::SKIP_KEY_PRESSED; break;
+					case 0xa1: m_type = TYPE::SKIP_KEY_NOT_PRESSED; break;
+				}
+				break;
+			}
 			case 0xf: {
-				if (m_NN == 0x33) {
-					m_type = TYPE::BCD_CONVERSION;
-				} else if (m_NN == 0x55) {
-					m_type = TYPE::STORE;
-				} else if (m_NN == 0x65) {
-					m_type = TYPE::LOAD;
+				switch (m_NN) {
+					case 0x33: m_type = TYPE::BCD_CONVERSION; break;
+					case 0x55: m_type = TYPE::STORE; break;
+					case 0x65: m_type = TYPE::LOAD; break;
+					case 0x1e: m_type = TYPE::ADD_TO_INDEX; break;
+					case 0x15: m_type = TYPE::SET_DELAY_TIMER; break;
+					case 0x07: m_type = TYPE::SET_X_DELAY_TIMER; break;
+					case 0x18: m_type = TYPE::SET_SOUND_TIMER; break;
+					case 0x29: m_type = TYPE::GET_FONT_CHAR; break;
 				}
 				break;
 			}
@@ -161,6 +180,14 @@ static constexpr std::string_view getInstructionName(Instruction::TYPE type) {
 		case BCD_CONVERSION: return "BCD_CONVERSION";
 		case STORE: return "STORE";
 		case LOAD: return "LOAD";
+		case ADD_TO_INDEX: return "ADD_TO_INDEX";
+		case SET_DELAY_TIMER: return "SET_DELAY_TIMER";
+		case SET_X_DELAY_TIMER: return "SET_X_DELAY_TIMER";
+		case SET_SOUND_TIMER: return "SET_SOUND_TIMER";
+		case SKIP_KEY_PRESSED: return "SKIP_KEY_PRESSED";
+		case SKIP_KEY_NOT_PRESSED: return "SKIP_KEY_NOT_PRESSED";
+		case GET_FONT_CHAR: return "GET_FONT_CHAR";
+		case RANDOM: return "RANDOM";
 		case EMPTY: return "UNKNOWN";
 	}
 }
@@ -173,7 +200,7 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instruction) {
 		<< static_cast<uint16_t>(instruction.m_N)
 		<< ":	" ;
 
-	// Now print instruction	
+	// TODO: Move this fetch/decode loop so we can print actual values
 	out << getInstructionName(instruction.m_type) << ' ';
 	using enum Instruction::TYPE;
 	switch (instruction.m_type) {
@@ -216,13 +243,24 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instruction) {
 			out << 'V' << instruction.m_X << " V" << instruction.m_Y;
 			break;
 		case BCD_CONVERSION:
+		case SET_DELAY_TIMER:
+		case SET_SOUND_TIMER:
+		case SET_X_DELAY_TIMER:
+		case SKIP_KEY_PRESSED:
+		case SKIP_KEY_NOT_PRESSED:
+		case GET_FONT_CHAR:
+		case ADD_TO_INDEX:
 			out << 'V' << instruction.m_X; 
 			break;
 		case STORE:
 		case LOAD:
 			out << "V0..V" << instruction.m_X;
+			break;
+		case RANDOM: 
+			out << instruction.m_NN;
+			break;
 		case RETURN:
-		default:
+		case EMPTY:
 			out << '\n';
 			break;
 	}

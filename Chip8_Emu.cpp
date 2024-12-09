@@ -6,19 +6,48 @@
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
+#include <chrono>
 #include <cstdint>
+#include <cstdlib>
+#include <mutex>
+#include <thread>
 
+std::mutex timer_lock {};
+
+static void increment_timers(uint8_t& sound_timer, uint8_t& delay_timer, bool& running) {
+	while (running) {
+		timer_lock.lock();
+		if (sound_timer > 0) {
+			--sound_timer;
+		}
+
+		if (delay_timer > 0) {
+			--delay_timer;
+		}
+		timer_lock.unlock();
+		std::this_thread::sleep_for(std::chrono::milliseconds(17));
+	}
+}
 
 void Chip8_Emu::play(const std::string& rom) {
 	bool running { true };
 	read_rom_into_memory(rom);
 
+	std::thread timer(increment_timers, std::ref(m_sound_timer), std::ref(m_delay_timer), std::ref(running));
 	while (running) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_EVENT_QUIT: {
 					running = false;
+					break;
+				}
+				case SDL_EVENT_KEY_DOWN: {
+					m_keys[event.key.scancode] = true;
+					break;
+				}
+				case SDL_EVENT_KEY_UP: {
+					m_keys[event.key.scancode] = false;
 					break;
 				}
 			}
@@ -138,53 +167,35 @@ void Chip8_Emu::play(const std::string& rom) {
 			case Instruction::TYPE::ADD: {
 				// Store in an int to check for 8 bit overflow
 				int value { m_registers[instr.m_X] + m_registers[instr.m_Y] };
-				if (value > 255) {
-					m_registers[0xf] = 1;
-				} else {
-					m_registers[0xf] = 0;
-				}
+
 				// Store the sum and let it overflow 
 				m_registers[instr.m_X] = value;
+				// Set carry flag on overflow
+				m_registers[0xf] = value > 255;
 				break;
 			}
 			case Instruction::TYPE::SUBTRACT_X_Y: {
-				if (m_registers[instr.m_X] > m_registers[instr.m_Y]) {
-					m_registers[0xf] = 1;
-				} else if (m_registers[instr.m_X] < m_registers[instr.m_Y]) {
-					m_registers[0xf] = 0;
-				}
-
-				m_registers[instr.m_X] = m_registers[instr.m_X] - m_registers[instr.m_Y];
+				uint8_t prev_reg_value { m_registers[instr.m_X] };
+				m_registers[instr.m_X] -= m_registers[instr.m_Y];
+				m_registers[0xf] = prev_reg_value > m_registers[instr.m_Y];
 				break;
 			}
 			case Instruction::TYPE::SUBTRACT_Y_X: {
-				if (m_registers[instr.m_Y] > m_registers[instr.m_X]) {
-					m_registers[0xf] = 1;
-				} else if (m_registers[instr.m_Y] < m_registers[instr.m_X]){
-					m_registers[0xf] = 0;
-				}
-
+				uint8_t prev_reg_value { m_registers[instr.m_X] };
 				m_registers[instr.m_X] = m_registers[instr.m_Y] - m_registers[instr.m_X];
+				m_registers[0xf] = m_registers[instr.m_Y] > prev_reg_value;
 				break;
 			}
 			case Instruction::TYPE::SHIFT_LEFT: {
-				int shifted_bit { m_registers[instr.m_X] & 0xf };
-				if (shifted_bit == 0x1) {
-					m_registers[0xf] = 1;
-				} else if (shifted_bit == 0x0) {
-					m_registers[0xf] = 0;
-				}
+				int shifted_bit { (m_registers[instr.m_X] >> 7) & 0x1 };
 				m_registers[instr.m_X] <<= 1;
+				m_registers[0xf] = shifted_bit;
 				break;
 			}
 			case Instruction::TYPE::SHIFT_RIGHT: {
-				int shifted_bit { m_registers[instr.m_X] & 0xf };
-				if (shifted_bit == 0x1) {
-					m_registers[0xf] = 1;
-				} else if (shifted_bit == 0x0) {
-					m_registers[0xf] = 0;
-				}
+				int shifted_bit { m_registers[instr.m_X] & 0x1 };
 				m_registers[instr.m_X] >>= 1;
+				m_registers[0xf] = shifted_bit;
 				break;
 			}
 			case Instruction::TYPE::BCD_CONVERSION: {
@@ -210,12 +221,55 @@ void Chip8_Emu::play(const std::string& rom) {
 				}
 				break;
 			}
+			case Instruction::TYPE::ADD_TO_INDEX: {
+				m_I += m_registers[instr.m_X];
+				break;
+			}
+			case Instruction::TYPE::SET_DELAY_TIMER: {
+				// TODO: wrap in mutex
+				m_delay_timer = m_registers[instr.m_X];
+				break;
+			}
+			case Instruction::TYPE::SET_X_DELAY_TIMER: {
+				timer_lock.lock();
+				m_registers[instr.m_X] = m_delay_timer;
+				timer_lock.unlock();
+				break;
+			}
+			case Instruction::TYPE::SET_SOUND_TIMER: {
+				timer_lock.lock();
+				m_sound_timer = m_registers[instr.m_X];
+				timer_lock.unlock();
+				break;
+			}
+			case Instruction::TYPE::SKIP_KEY_PRESSED: {
+				uint16_t key { m_keymap[m_registers[instr.m_X]] };
+				if (m_keys[key]) {
+					m_PC += 2;
+				}
+				break;
+			}
+			case Instruction::TYPE::SKIP_KEY_NOT_PRESSED: {
+				uint16_t key { m_keymap[m_registers[instr.m_X]] };
+				if (!m_keys[key]) {
+					m_PC += 2;
+				}
+				break;
+			}
+			case Instruction::TYPE::GET_FONT_CHAR: {
+				m_I = m_registers[instr.m_X];
+				break;
+			}
+			case Instruction::TYPE::RANDOM: {
+				m_registers[instr.m_X] = (rand() % 256) & instr.m_NN;
+				break;
+			}
 			default: {
 				// Exit when we encounter unknown instruction
 				std::cout << "Missing implementation: " << instr << '\n';
 				return;
 			}
 		}
-
 	}
+	timer.join();
 }
