@@ -3,6 +3,7 @@
 #include "Bitmap.h"
 #include "SDL3/SDL.h"
 #include <SDL3/SDL_init.h>
+#include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
 #include <cstdint>
 #include <string_view>
@@ -35,9 +36,10 @@ public:
 		int w;
 		int h;
 		SDL_GetWindowSize(window, &w, &h);
-		float scale_w = w / 64;
-		float scale_h = h / 32;
+		float scale_w = w / 64.0f;
+		float scale_h = h / 32.0f;
 		SDL_FRect pixel { 0, 0, scale_w, scale_h };
+		SDL_RenderClear(m_renderer);
 		// Using floats instead of ints to avoid messy static casting
 		for (float y = 0; y < bitmap.height; ++y) {
 			for (float x = 0; x < bitmap.width; ++x) {
@@ -48,10 +50,10 @@ public:
 					SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
 					SDL_RenderFillRect(m_renderer, &pixel);
 					SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
-					SDL_RenderPresent(m_renderer);
 				} 
 			}
 		}
+		SDL_RenderPresent(m_renderer);
 	}
 
 	SDL_Window* window {};
