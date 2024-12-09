@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <optional>
 #include <string>
 #include <iostream>
 #include <unordered_map>
@@ -86,6 +87,15 @@ private:
 		auto size { std::filesystem::file_size(rom) };
 		rom_file.read(reinterpret_cast<char*>(m_memory.data()) + 512, size);
 
+	}
+
+	std::optional<uint16_t> get_pressed_key() {
+		for (const auto& key : m_keymap) {
+			if (m_keys[key.second]) {
+				return key.second;	
+			}
+		}
+		return {};
 	}
 
 };

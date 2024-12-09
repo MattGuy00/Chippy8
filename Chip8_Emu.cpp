@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <mutex>
+#include <optional>
 #include <thread>
 
 std::mutex timer_lock {};
@@ -28,6 +29,8 @@ static void increment_timers(uint8_t& sound_timer, uint8_t& delay_timer, bool& r
 		std::this_thread::sleep_for(std::chrono::milliseconds(17));
 	}
 }
+
+
 
 void Chip8_Emu::play(const std::string& rom) {
 	bool running { true };
@@ -262,6 +265,15 @@ void Chip8_Emu::play(const std::string& rom) {
 			}
 			case Instruction::TYPE::RANDOM: {
 				m_registers[instr.m_X] = (rand() % 256) & instr.m_NN;
+				break;
+			}
+			case Instruction::TYPE::WAIT_FOR_KEYPRESS: {
+				auto opt_scancode { get_pressed_key() };
+				if (opt_scancode){
+					m_registers[instr.m_X] = opt_scancode.value();
+				} else {
+					m_PC -= 2;
+				}
 				break;
 			}
 			default: {

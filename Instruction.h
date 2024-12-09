@@ -37,6 +37,7 @@ public:
 		SET_X_DELAY_TIMER,
 		SKIP_KEY_PRESSED,
 		SKIP_KEY_NOT_PRESSED,
+		WAIT_FOR_KEYPRESS,
 		GET_FONT_CHAR,
 		RANDOM,
 		EMPTY,
@@ -132,6 +133,7 @@ public:
 					case 0x07: m_type = TYPE::SET_X_DELAY_TIMER; break;
 					case 0x18: m_type = TYPE::SET_SOUND_TIMER; break;
 					case 0x29: m_type = TYPE::GET_FONT_CHAR; break;
+					case 0x0a: m_type = TYPE::WAIT_FOR_KEYPRESS; break;
 				}
 				break;
 			}
@@ -188,6 +190,7 @@ static constexpr std::string_view getInstructionName(Instruction::TYPE type) {
 		case SKIP_KEY_NOT_PRESSED: return "SKIP_KEY_NOT_PRESSED";
 		case GET_FONT_CHAR: return "GET_FONT_CHAR";
 		case RANDOM: return "RANDOM";
+		case WAIT_FOR_KEYPRESS: return "WAIT_FOR_KEYPRESS";
 		case EMPTY: return "UNKNOWN";
 	}
 }
@@ -260,6 +263,7 @@ std::ostream& operator<<(std::ostream& out, const Instruction& instruction) {
 			out << instruction.m_NN;
 			break;
 		case RETURN:
+		case WAIT_FOR_KEYPRESS:
 		case EMPTY:
 			out << '\n';
 			break;
