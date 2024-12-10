@@ -2,12 +2,11 @@
 
 #include <cstdint>
 #include <vector>
+
 struct Bitmap {
-	Bitmap(int w, int h) {
-		width = w;
-		height = h;
-		data = std::vector<std::vector<uint8_t>>(w, std::vector<uint8_t>(h, 0));
-	}
+	int width {};
+	int height {};
+	std::vector<std::vector<uint8_t>> data = std::vector<std::vector<uint8_t>>(width, std::vector<uint8_t>(height, 0));
 
 	void clear_bitmap() {
 		for (int y = 0; y < height; ++y) {
@@ -17,7 +16,4 @@ struct Bitmap {
 		}
 	}
 
-	int width {};
-	int height {};
-	std::vector<std::vector<uint8_t>> data {};
 };
