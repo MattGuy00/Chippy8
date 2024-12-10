@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Bitmap.h"
+#include "Instruction.h"
 #include "Window.h"
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_scancode.h>
@@ -14,15 +15,42 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
+#include <thread>
 
 class Chip8_Emu {
 public:
-	// Fixed width and height until we add option for user
-	// to change it
-	static constexpr int m_window_width { 640 };
-	static constexpr int m_window_height { 320 };
+	Chip8_Emu() {
+		// Run thread in background that increments the timers
+		m_timer_thread = std::thread(&Chip8_Emu::increment_timers, this);
+	}
+
+	~Chip8_Emu() {
+		m_running = false;
+		m_timer_thread.join();
+	}
 
 	void play(const std::string& rom);
+
+private:
+	static constexpr int m_memory_size { 4096 };
+	static constexpr int m_window_width { 640 };
+	static constexpr int m_window_height { 320 };
+	static constexpr uint16_t m_rom_start_pos { 512 };
+
+	std::thread m_timer_thread {};
+	std::mutex m_timer_lock {};
+
+	uint8_t m_delay_timer {};
+	uint8_t m_sound_timer {};
+	int m_PC { 512 };
+	int m_I {};
+
+	Window m_window { "Chip8", m_window_width, m_window_height };
+	Bitmap m_bitmap { m_window_width, m_window_height };
+	std::vector<uint16_t> m_stack {};
+
+	std::array<uint8_t, 16> m_registers {};
+	bool m_running { true };
 
 	std::array<std::uint8_t, 4096> m_memory {
 		// Font
@@ -43,9 +71,6 @@ public:
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 		0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 	};
-
-	Bitmap bitmap { m_window_width, m_window_height };
-	std::vector<uint16_t> m_stack {};
 
 	//	COMSAC LAYOUT: =>	MODERN LAYOUT:
 	//	1 2 3 C				1 2 3 4
@@ -71,22 +96,52 @@ public:
 		{ 0xe, SDL_SCANCODE_F },
 		{ 0xf, SDL_SCANCODE_V }
 	};
-	uint8_t m_delay_timer {};
-	uint8_t m_sound_timer {};
-	int m_PC { 512 };
-	int m_I {};
 
-	Window window { "Chip8", m_window_width, m_window_height };
+	// Fetches the next instruction, incrementing the pc by 2	
+	Instruction fetch_next_instruction() {
+		int upper_byte = m_memory[m_PC] << 8;
+		m_PC +=1;
+		int lower_byte = m_memory[m_PC];
+		m_PC += 1;
+		return { static_cast<uint16_t>(upper_byte | lower_byte) };
+	}
 
-	std::array<uint8_t, 16> m_registers {};
-private:
-	void read_rom_into_memory(const std::string& rom) {
+	void increment_timers() {
+		while (m_running) {
+			m_timer_lock.lock();
+			if (m_sound_timer > 0) {
+				--m_sound_timer;
+			}
+
+			if (m_delay_timer > 0) {
+				--m_delay_timer;
+			}
+			m_timer_lock.unlock();
+
+			// Roughly 60hz
+			std::this_thread::sleep_for(std::chrono::milliseconds(17));
+		}
+	}
+
+	bool try_load_rom_into_memory(const std::string& rom) {
 		std::ifstream rom_file { rom, std::ios::binary };	
-		int rom_memory_start_pos { 511 };
-		// TODO: Add error checking
-		auto size { std::filesystem::file_size(rom) };
-		rom_file.read(reinterpret_cast<char*>(m_memory.data()) + 512, size);
 
+		if (!rom_file.good()) {
+			std::cerr << "Rom Error: Bad rom.\n";
+			return false;
+		} 
+
+		auto size { std::filesystem::file_size(rom) };
+		// If the file is too large to fit into memory we should quit
+		if ((size > (m_memory_size - m_rom_start_pos))) {
+			std::cerr << "Rom Error: Rom unable to fit into memory - ";
+			std::cerr << "Max size: " << m_memory_size - m_rom_start_pos << ", " ;
+			std::cerr << "Rom size: " << size << '\n';
+			return false;
+		}
+
+		rom_file.read(reinterpret_cast<char*>(m_memory.data()) + m_rom_start_pos, size);
+		return true;
 	}
 
 	std::optional<uint16_t> get_pressed_key() {
