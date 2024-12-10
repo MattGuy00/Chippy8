@@ -49,6 +49,10 @@ void Chip8_Emu::play(const std::string& rom) {
 				m_PC = instruction.m_NNN;
 				break;
 			}
+			case Instruction::TYPE::JUMP_OFFSET: {
+				m_PC = instruction.m_NNN + m_registers[0];
+				break;
+			}
 			case Instruction::TYPE::SET_REG: {
 				m_registers[instruction.m_X] = instruction.m_NN;
 				break;
