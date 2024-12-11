@@ -27,7 +27,7 @@ Running the emulator:
 | Z | X | C | V |
 
 ## Roms
-Many games and demos can be found here:
+Many games and demos can be found here: <br>
 https://github.com/kripod/chip8-roms
 
 
