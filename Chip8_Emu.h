@@ -45,7 +45,7 @@ private:
 	int m_PC { 512 };
 	int m_I {};
 
-	Window m_window { "Chip8", m_window_width, m_window_height };
+	Window m_window { "Chippy8", m_window_width, m_window_height };
 	Bitmap m_bitmap { m_window_width, m_window_height };
 	std::vector<uint16_t> m_stack {};
 
@@ -106,6 +106,7 @@ private:
 		return { static_cast<uint16_t>(upper_byte | lower_byte) };
 	}
 
+	// Increments the sound and delay timers. To be used outside of main thread
 	void increment_timers() {
 		while (m_running) {
 			m_timer_lock.lock();
