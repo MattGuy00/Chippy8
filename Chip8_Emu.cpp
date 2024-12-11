@@ -36,7 +36,6 @@ void Chip8_Emu::play(const std::string& rom) {
 		}
 
 		Instruction instruction = fetch_next_instruction();
-		std::cout << "loc:" << m_PC << ':';
 		std::cout << std::hex << instruction << '\n';
 		switch (instruction.m_type) {
 			case Instruction::TYPE::CLEAR_SCREEN: {

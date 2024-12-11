@@ -178,7 +178,6 @@ public:
 			case RETURN:
 			case WAIT_FOR_KEYPRESS:
 			case UNKNOWN:
-				out << '\n';
 				break;
 		}
 
