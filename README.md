@@ -32,13 +32,13 @@ https://github.com/kripod/chip8-roms
 
 
 ## Testing
-Classic IBM logo:
+Classic IBM logo: <br>
 https://github.com/loktar00/chip8/blob/master/roms/IBM%20Logo.ch8
 
-Some basic tests. Doesn't cover all opcodes:
-https://github.com/corax89/chip8-test-rom/blob/master/test_opcode.ch8
+Some basic tests. Doesn't cover all opcodes: <br>
+https://github.com/corax89/chip8-test-rom/blob/master/test_opcode.ch8 <br>
 https://github.com/daniel5151/AC8E/blob/master/roms/bc_test.ch8
 
-Comprehensive test suite that covers most, if not all, opcodes:
-(I ran roms 1, 3, 4, 5, 6 located in bin/)
+Comprehensive test suite that covers most, if not all, opcodes: <br>
+(I ran roms 1, 3, 4, 5, 6 located in bin/) <br>
 https://github.com/Timendus/chip8-test-suite
