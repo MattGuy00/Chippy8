@@ -6,7 +6,11 @@ This is my attempt at a Chip8 Emulator. It is written in C++ and uses SDL as a c
 <br>Credit: [Wikipedia](https://en.wikipedia.org/wiki/Chip-8)
 
 ## Usage
+Dependencies: SDL3
 ```
+git clone https://github.com/MattGuy00/Chippy8.git
+cd Chippy8
+cmake .
 ```
 
 ## Controls
