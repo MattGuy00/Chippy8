@@ -10,4 +10,4 @@ include_directories(${SDL3_INCLUDE_DIRS})
 add_executable(Chippy8
         main.cpp
 		Chip8_Emu.cpp)
-target_link_libraries(Chippy8 ${SDL3_LIBRARIES})
+target_link_libraries(Chippy8 PUBLIC ${SDL3_LIBRARIES})
