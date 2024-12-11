@@ -13,6 +13,11 @@ cd Chippy8
 cmake .
 ```
 
+Running the emulator:
+```
+./Chippy8 path/to/rom
+```
+
 ## Controls
 | 1 | 2 | 3 | 4 |
 |---|---|---|---|
