@@ -1,15 +1,10 @@
 #include "Chip8_Emu.h"
 #include "Instruction.h"
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_init.h>
-#include <SDL3/SDL_oldnames.h>
-#include <SDL3/SDL_rect.h>
-#include <SDL3/SDL_render.h>
-#include <SDL3/SDL_video.h>
+
+#include <SDL3/SDL.h>
 #include <cstdint>
-#include <cstdlib>
-#include <mutex>
 #include <optional>
+#include <mutex>
 
 void Chip8_Emu::play(const std::string& rom) {
 	if (!try_load_rom_into_memory(rom)) {
@@ -39,7 +34,6 @@ void Chip8_Emu::play(const std::string& rom) {
 		std::cout << std::hex << instruction << '\n';
 		switch (instruction.m_type) {
 			case Instruction::TYPE::CLEAR_SCREEN: {
-				// TODO: clear bitmap 
 				m_bitmap.clear_bitmap();
 				m_window.draw_background(0, 0, 0, 255);
 				break;
@@ -205,8 +199,9 @@ void Chip8_Emu::play(const std::string& rom) {
 				break;
 			}
 			case Instruction::TYPE::SET_DELAY_TIMER: {
-				// TODO: wrap in mutex
+				m_timer_lock.lock();
 				m_delay_timer = m_registers[instruction.m_X];
+				m_timer_lock.unlock();
 				break;
 			}
 			case Instruction::TYPE::SET_X_DELAY_TIMER: {
